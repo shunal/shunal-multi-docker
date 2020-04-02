@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t shunal/react-test -f ./client/Dockerfile.dev ./client
+
+scripts:
+    - docker run -e CI=true shunal/react-test npm test
+
+after_succcess:
+    - docker build -t shunal/multi-client ./client
+    - docker build -t shunal/multi-nginx ./nginx 
+    - docker build -t shunal/multi-server ./server
+    - docker build -t shunal/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push shunal/multi-client
+    - docker push shunal/multi-nginx
+    - docker push shunal/multi-server
+    - docker push shunal/multi-worker
